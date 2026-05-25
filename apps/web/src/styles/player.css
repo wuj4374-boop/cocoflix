@@ -1,0 +1,188 @@
+/* ============ 播放器全局样式 ============ */
+
+/* ArtPlayer 容器覆盖 */
+.art-video-player {
+  background: #000 !important;
+}
+
+.art-video-player .art-bottom {
+  display: none !important;
+}
+
+.art-video-player .art-setting {
+  display: none !important;
+}
+
+.art-video-player .art-notice {
+  display: none !important;
+}
+
+.art-video-player .art-state {
+  display: none !important;
+}
+
+.art-video-player .art-mini-progressbar {
+  background: rgba(255, 255, 255, 0.1) !important;
+  z-index: 60 !important;
+}
+
+.art-video-player .art-mini-progressbar .art-mini-progressbar-inner {
+  background: #e50914 !important;
+}
+
+/* 全屏模式优化 */
+.art-video-player.art-fullscreen .art-subtitle {
+  bottom: 100px !important;
+  font-size: 1.6em !important;
+}
+
+/* 影院模式 */
+.cinema-mode {
+  background: #000;
+}
+
+.cinema-mode .art-video-player {
+  max-width: 90vw;
+  margin: 0 auto;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow:
+    0 0 120px rgba(229, 9, 20, 0.06),
+    0 0 300px rgba(0, 0, 0, 0.9);
+}
+
+/* 控制栏玻璃效果 */
+.player-controls-glass {
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* 进度条拖拽时防止选中 */
+.player-dragging {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.player-dragging * {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  .art-video-player .art-subtitle {
+    font-size: 1.1em !important;
+    bottom: 60px !important;
+  }
+
+  .coco-subtitle-text {
+    font-size: 1.1em !important;
+  }
+}
+
+/* 画中画模式 */
+.art-video-player.art-pip {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  width: 360px !important;
+  height: 202px !important;
+  z-index: 9999 !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7), 0 0 20px rgba(229, 9, 20, 0.1) !important;
+}
+
+/* 自定义音量滑块样式 */
+input[type='range'] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type='range']::-webkit-slider-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  margin-top: -4px;
+  transition: transform 0.15s ease;
+}
+
+input[type='range']:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+}
+
+input[type='range']::-moz-range-track {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  border: none;
+}
+
+input[type='range']::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+}
+
+/* 键盘快捷键提示动画 */
+@keyframes shortcutHint {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.9);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.9);
+  }
+}
+
+.shortcut-hint {
+  animation: shortcutHint 1s ease-in-out forwards;
+}
+
+/* 进度条缓冲动画 */
+@keyframes bufferPulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.buffer-pulse {
+  animation: bufferPulse 2s ease-in-out infinite;
+}
+
+/* HDR 视频支持 */
+video[hdr='true'] {
+  color-gamut: p3;
+}
+
+/* 平滑过渡 */
+.player-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

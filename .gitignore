@@ -1,0 +1,60 @@
+# ============ 依赖 ============
+node_modules/
+.pnp
+.pnp.js
+
+# ============ 构建产物 ============
+dist/
+build/
+.next/
+out/
+
+# ============ 环境变量 ============
+.env
+.env.local
+.env.*.local
+
+# ============ IDE ============
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ============ 日志 ============
+logs/
+**/logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ============ 操作系统 ============
+.DS_Store
+Thumbs.db
+
+# ============ 测试 ============
+coverage/
+.nyc_output/
+
+# ============ 数据库 ============
+**/data/*.db
+**/data/*.db-journal
+
+# ============ 存储 ============
+storage/media/*
+!storage/media/.gitkeep
+storage/transcoded/*
+!storage/transcoded/.gitkeep
+storage/thumbnails/*
+!storage/thumbnails/.gitkeep
+storage/subtitles/*
+!storage/subtitles/.gitkeep
+storage/avatars/*
+storage/tmdb-images/*
+
+# ============ Prisma (不使用) ============
+# prisma/
+
+# ============ TypeORM ============
+*.js.map

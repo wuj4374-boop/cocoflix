@@ -1,0 +1,10 @@
+{
+  "buildCommand": "cd ../.. && npm install && cd apps/web && npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- ../../apps/web ../../packages",
+  "env": {
+    "NEXT_PUBLIC_API_URL": "@cocoflix-api-url"
+  }
+}

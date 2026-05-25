@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: cocoflix-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    disk:
+      name: cocoflix-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_PORT
+        value: "4000"
+      - key: DB_PATH
+        value: /data/cocoflix.db
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRATION
+        value: 7d
+      - key: CORS_ORIGIN
+        sync: false
+      - key: API_PREFIX
+        value: api/v1
+      - key: SWAGGER_ENABLED
+        value: "false"
+      - key: LOG_LEVEL
+        value: warn
+      - key: STORAGE_PATH
+        value: /storage
+      - key: TMDB_IMAGE_CACHE_DIR
+        value: /storage/tmdb-images
+      - key: TMDB_API_KEY
+        sync: false
+    healthCheckPath: /api/v1/health
