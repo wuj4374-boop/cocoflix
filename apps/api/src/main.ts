@@ -34,9 +34,10 @@ export async function createApp() {
 
   // 静态文件服务：头像
   const isVercel = !!process.env.VERCEL;
+  const storagePath = configService.get<string>('STORAGE_PATH', join(process.cwd(), '..', '..', 'storage'));
   const avatarsDir = isVercel
     ? '/tmp/avatars'
-    : join(process.cwd(), '..', '..', 'storage', 'avatars');
+    : join(storagePath, 'avatars');
   app.use(`/${apiPrefix}/avatars`, express.static(avatarsDir));
 
   app.use(helmet());

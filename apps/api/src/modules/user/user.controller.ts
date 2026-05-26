@@ -11,7 +11,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 const avatarStorage = diskStorage({
   destination: (_req, _file, cb) => {
-    const dir = join(process.cwd(), '..', '..', 'storage', 'avatars');
+    const storagePath = process.env.STORAGE_PATH || join(process.cwd(), '..', '..', 'storage');
+    const dir = join(storagePath, 'avatars');
     if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
