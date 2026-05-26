@@ -5,7 +5,6 @@ import {
   SourceConfig,
   SourceType,
   XmlApiResponse,
-  XmlVideoItem,
   EpisodeInfo,
 } from '../types';
 import { BaseAdapter } from './base.adapter';
@@ -68,49 +67,71 @@ export class M3u8Adapter extends BaseAdapter {
   }
 
   private parseVideoList(data: Record<string, unknown>): SearchResult[] {
-    const list = (data as unknown as XmlApiResponse)?.list;
-    if (!list?.video) return [];
+    // Handle both formats: {list: [...]} and {list: {video: [...]}}
+    const listData = (data as unknown as XmlApiResponse)?.list;
+    if (!listData) return [];
 
-    const videos = Array.isArray(list.video) ? list.video : [list.video];
+    let videos: Record<string, unknown>[];
+    if (Array.isArray(listData)) {
+      videos = listData as Record<string, unknown>[];
+    } else if (listData.video) {
+      videos = Array.isArray(listData.video) ? listData.video : [listData.video];
+    } else {
+      return [];
+    }
+
     return videos.map((item) => this.mapVideoToResult(item));
   }
 
-  private mapVideoToResult(item: XmlVideoItem): SearchResult {
-    const quality = this.parseQualityFromTitle(item.name + ' ' + (item.remark || ''));
-    const episodes = this.parseEpisodes(item);
-    const isSeries = episodes.length > 1 || item.type?.includes('连续剧') || item.type?.includes('动漫');
+  private mapVideoToResult(item: Record<string, unknown>): SearchResult {
+    // Support both old format (name/pic/play_url) and new format (vod_name/vod_pic/vod_play_url)
+    const title = (item.name || item.vod_name || '') as string;
+    const remark = (item.remark || item.vod_remarks || '') as string;
+    const quality = this.parseQualityFromTitle(title + ' ' + remark);
+    const episodes = this.parseEpisodesFromItem(item);
+    const typeStr = (item.type || item.type_name || item.vod_class || '') as string;
+    const isSeries = episodes.length > 1 || typeStr.includes('连续剧') || typeStr.includes('动漫') || typeStr.includes('剧');
+
+    const id = (item.id || item.vod_id || '') as string;
+    const year = (item.year || item.vod_year || '') as string;
 
     return {
-      id: `${this.id}_${item.id}`,
+      id: `${this.id}_${id}`,
       sourceId: this.id,
       sourceName: this.name,
       sourceType: SourceType.M3U8,
-      title: item.name,
-      year: item.year ? parseInt(item.year, 10) : undefined,
-      poster: item.pic,
-      description: item.des,
-      genres: item.type ? item.type.split(/[,，]/) : [],
-      actors: item.actor ? item.actor.split(/[,，/]/).map((s: string) => s.trim()) : [],
-      directors: item.director ? item.director.split(/[,，/]/).map((s: string) => s.trim()) : [],
+      title,
+      year: year ? parseInt(year, 10) : undefined,
+      poster: (item.pic || item.vod_pic || '') as string,
+      description: (item.des || item.vod_content || item.vod_blurb || '') as string,
+      genres: typeStr ? typeStr.split(/[,，/]/) : [],
+      actors: this.splitField((item.actor || item.vod_actor || '') as string),
+      directors: this.splitField((item.director || item.vod_director || '') as string),
       quality,
-      playUrl: item.play_url || '',
+      playUrl: (item.play_url || item.vod_play_url || '') as string,
       episodes,
       isSeries,
-      updateTime: item.dt,
-      raw: item as unknown as Record<string, unknown>,
+      updateTime: (item.dt || item.vod_time || '') as string,
+      raw: item,
     };
   }
 
-  private parseEpisodes(item: XmlVideoItem): EpisodeInfo[] {
+  private splitField(value: string): string[] {
+    if (!value) return [];
+    return value.split(/[,，/]/).map((s: string) => s.trim()).filter(Boolean);
+  }
+
+  private parseEpisodesFromItem(item: Record<string, unknown>): EpisodeInfo[] {
     const episodes: EpisodeInfo[] = [];
 
-    if (!item.dl?.dd) return episodes;
-
-    const ddList = Array.isArray(item.dl.dd) ? item.dl.dd : [item.dl.dd];
-
-    for (const dd of ddList) {
-      if (!dd._) continue;
-      const parts = dd._.split('#');
+    // Try vod_play_url format: "标题$url#标题$url$$$标题$url#标题$url"
+    const playUrl = (item.vod_play_url || item.play_url || '') as string;
+    if (playUrl) {
+      // Multiple play sources separated by $$$
+      const sources = playUrl.split('$$$');
+      // Use the last source (usually the m3u8 one)
+      const lastSource = sources[sources.length - 1] || sources[0];
+      const parts = lastSource.split('#');
       for (let i = 0; i < parts.length; i++) {
         const [title, url] = parts[i].split('$');
         if (url) {
@@ -119,6 +140,27 @@ export class M3u8Adapter extends BaseAdapter {
             title: title || `第${i + 1}集`,
             playUrl: url,
           });
+        }
+      }
+      if (episodes.length > 0) return episodes;
+    }
+
+    // Try dl/dd format (XML-style)
+    const dl = item.dl as { dd?: Array<{ _?: string; _flag?: string }> } | undefined;
+    if (dl?.dd) {
+      const ddList = Array.isArray(dl.dd) ? dl.dd : [dl.dd];
+      for (const dd of ddList) {
+        if (!dd._) continue;
+        const parts = dd._.split('#');
+        for (let i = 0; i < parts.length; i++) {
+          const [title, url] = parts[i].split('$');
+          if (url) {
+            episodes.push({
+              episodeNumber: i + 1,
+              title: title || `第${i + 1}集`,
+              playUrl: url,
+            });
+          }
         }
       }
     }
