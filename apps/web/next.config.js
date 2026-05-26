@@ -62,12 +62,15 @@ const nextConfig = {
     // ppr: true,
   },
 
-  // API 代理
+  // API 代理（前端 /api/v1/* → 后端 /api/v1/*）
   async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    // 同域部署时不需要代理
+    if (!apiUrl) return [];
     return [
       {
-        source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/:path*`,
+        source: '/api/v1/:path*',
+        destination: `${apiUrl}/api/v1/:path*`,
       },
     ];
   },

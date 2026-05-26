@@ -58,3 +58,5 @@ storage/tmdb-images/*
 
 # ============ TypeORM ============
 *.js.map
+
+.vercel
