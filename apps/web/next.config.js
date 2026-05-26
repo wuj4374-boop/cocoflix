@@ -65,7 +65,6 @@ const nextConfig = {
   // API 代理（前端 /api/v1/* → 后端 /api/v1/*）
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    // 同域部署时不需要代理
     if (!apiUrl) return [];
     return [
       {
