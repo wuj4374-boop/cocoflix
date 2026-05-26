@@ -20,7 +20,7 @@ services:
       - key: JWT_EXPIRATION
         value: 7d
       - key: CORS_ORIGIN
-        sync: false
+        value: "*"
       - key: API_PREFIX
         value: api/v1
       - key: SWAGGER_ENABLED

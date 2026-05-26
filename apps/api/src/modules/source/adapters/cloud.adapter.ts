@@ -19,7 +19,7 @@ export class CloudAdapter extends BaseAdapter {
   };
 
   private readonly panPatterns = {
-    aliyun: /https?:\/\/(?:www\.)?alipan\.com\/s\/[\w]+/g,
+    aliyun: /https?:\/\/(?:www\.)?(?:alipan\.com|aliyundrive\.com)\/s\/[\w]+/g,
     baidu: /https?:\/\/pan\.baidu\.com\/s\/[\w-]+/g,
     quark: /https?:\/\/pan\.quark\.cn\/s\/[\w]+/g,
     xunlei: /https?:\/\/pan\.xunlei\.com\/s\/[\w-]+/g,
@@ -184,7 +184,7 @@ export class CloudAdapter extends BaseAdapter {
   }
 
   private detectPanType(url: string): string {
-    if (/alipan|aliyundrive|alipan\.com/i.test(url)) return 'aliyun';
+    if (/alipan\.com|aliyundrive\.com/i.test(url)) return 'aliyun';
     if (/pan\.baidu/i.test(url)) return 'baidu';
     if (/pan\.quark/i.test(url)) return 'quark';
     if (/pan\.xunlei/i.test(url)) return 'xunlei';

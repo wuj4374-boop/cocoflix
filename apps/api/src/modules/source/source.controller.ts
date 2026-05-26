@@ -11,6 +11,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
+import { DataSource } from 'typeorm';
 import { SearchOrchestrator } from './services/search-orchestrator.service';
 import { SourceManager } from './services/source-manager.service';
 import { AggregatorService } from './services/aggregator.service';
@@ -18,6 +19,7 @@ import { CacheService } from './services/cache.service';
 import { CircuitBreakerService } from './services/circuit-breaker.service';
 import { SearchQueryDto, RegisterSourceDto, CircuitResetDto } from './dto/search.dto';
 import { AggregatedResult, SearchResult } from './types';
+import { Source } from './entities/source.entity';
 
 @ApiTags('资源聚合')
 @Controller('source')
@@ -30,6 +32,7 @@ export class SourceController {
     private readonly aggregator: AggregatorService,
     private readonly cacheService: CacheService,
     private readonly circuitBreaker: CircuitBreakerService,
+    private readonly dataSource: DataSource,
   ) {}
 
   // ==================== Search Endpoints ====================
@@ -305,5 +308,57 @@ export class SourceController {
       cache: this.cacheService.getStats(),
       circuitBreaker: this.circuitBreaker.getStats(),
     };
+  }
+
+  // ==================== Admin: Re-seed ====================
+
+  @Post('admin/seed')
+  @ApiOperation({ summary: '手动触发资源站种子数据初始化' })
+  @ApiResponse({ status: 200, description: '初始化成功' })
+  async manualSeed(): Promise<{ success: boolean; message: string; seeded: number }> {
+    const sourceRepo = this.dataSource.getRepository(Source);
+    const count = await sourceRepo.count();
+    if (count > 0) {
+      return { success: false, message: `数据库已有 ${count} 个资源站，无需重复初始化`, seeded: 0 };
+    }
+
+    const sources = [
+      { id: 'heimuer', name: '黑木耳资源', type: 'm3u8', url: 'https://json.heimuer.xyz', priority: 1, timeout: 10000, retryCount: 3, config: {} },
+      { id: 'ffzy', name: '非凡资源', type: 'm3u8', url: 'https://cj.ffzyapi.com', priority: 2, timeout: 10000, retryCount: 3, config: {} },
+      { id: 'hongniu', name: '红牛资源', type: 'm3u8', url: 'https://www.hongniuzy2.com', priority: 3, timeout: 10000, retryCount: 3, config: {} },
+      { id: 'wolong', name: '卧龙资源', type: 'm3u8', url: 'https://collect.wolongzyw.com', priority: 4, timeout: 10000, retryCount: 3, config: {} },
+      { id: 'kuaikan', name: '快看资源', type: 'm3u8', url: 'https://kuaikanapi.com', priority: 5, timeout: 10000, retryCount: 3, config: {} },
+      { id: 'bfzy', name: '暴风资源', type: 'm3u8', url: 'https://bfzyapi.com', priority: 6, timeout: 10000, retryCount: 3, config: {} },
+      { id: 'lzzy', name: '量子资源', type: 'm3u8', url: 'https://cj.lziapi.com', priority: 7, timeout: 10000, retryCount: 3, config: {} },
+      { id: 'bangumi', name: 'Bangumi', type: 'anime', url: 'https://api.bgm.tv', priority: 1, timeout: 15000, retryCount: 3, config: {} },
+      { id: 'agefans', name: 'AGE动漫', type: 'anime', url: 'https://www.agemys.org', priority: 2, timeout: 12000, retryCount: 3, config: {} },
+      { id: 'nyafun', name: '尼亚动漫', type: 'anime', url: 'https://nyafun.net', priority: 3, timeout: 12000, retryCount: 3, config: {} },
+      { id: 'upyunso', name: '趣盘搜', type: 'cloud', url: 'https://upyun.so', priority: 1, timeout: 15000, retryCount: 2, config: {} },
+      { id: 'pansearch', name: '盘搜', type: 'cloud', url: 'https://www.pansearch.me', priority: 2, timeout: 15000, retryCount: 2, config: {} },
+    ];
+
+    let seeded = 0;
+    for (const s of sources) {
+      try {
+        await sourceRepo.save(sourceRepo.create({ ...s, enabled: true }));
+        seeded++;
+        this.logger.log(`Seeded source: ${s.name} (${s.id})`);
+      } catch (e) {
+        this.logger.error(`Failed to seed source ${s.id}: ${e}`);
+      }
+    }
+
+    // 显式保存
+    try {
+      const driver = this.dataSource.driver as any;
+      if (typeof driver.save === 'function') {
+        await driver.save();
+        this.logger.log('Database saved after manual seed');
+      }
+    } catch (e) {
+      this.logger.warn('Database save after seed failed: ' + e);
+    }
+
+    return { success: true, message: `已初始化 ${seeded}/${sources.length} 个资源站`, seeded };
   }
 }

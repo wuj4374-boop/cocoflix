@@ -211,15 +211,18 @@ export interface XmlVideoItem {
   lang?: string;
   remark?: string;
   play_url?: string;
+  vod_play_url?: string;
   id: number;
   actor?: string;
   director?: string;
   dl?: {
     dd: XmlEpisodeList[];
   };
+  [key: string]: unknown;
 }
 
 export interface XmlEpisodeList {
   _flag: string;
+  flag?: string;
   _: string;
 }

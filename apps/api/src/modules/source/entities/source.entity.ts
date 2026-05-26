@@ -1,6 +1,6 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
+  PrimaryColumn,
   Column,
   CreateDateColumn,
   UpdateDateColumn,
@@ -8,7 +8,7 @@ import {
 
 @Entity('sources')
 export class Source {
-  @PrimaryGeneratedColumn('uuid')
+  @PrimaryColumn({ type: 'text' })
   id: string;
 
   @Column({ length: 100 })
