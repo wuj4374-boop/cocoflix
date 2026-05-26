@@ -64,10 +64,13 @@ const nextConfig = {
 
   // API 代理
   async rewrites() {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+    // 同域部署时不需要代理
+    if (!apiUrl) return [];
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api/v1'}/:path*`,
+        destination: `${apiUrl}/:path*`,
       },
     ];
   },
