@@ -60,3 +60,4 @@ storage/tmdb-images/*
 *.js.map
 
 .vercel
+.env.vercel
