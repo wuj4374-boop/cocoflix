@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Play, Trash2, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { useHistory } from '@/hooks/useApi';
 import { useAuthStore } from '@/stores/authStore';
@@ -48,7 +49,7 @@ export default function HistoryPage() {
         await apiClient.delete(`/progress/${mediaId}`);
         await mutate();
       } catch {
-        // ignore
+        toast.error('删除记录失败');
       } finally {
         setDeletingId(null);
       }
@@ -63,7 +64,7 @@ export default function HistoryPage() {
       await mutate();
       setShowClearConfirm(false);
     } catch {
-      // ignore
+      toast.error('清空历史失败');
     } finally {
       setClearing(false);
     }

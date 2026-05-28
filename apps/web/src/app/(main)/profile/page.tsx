@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Camera, Edit3, Check, X, Heart, Clock, Film } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { useFavorites, useHistory } from '@/hooks/useApi';
 import { useAuthStore } from '@/stores/authStore';
@@ -41,15 +42,13 @@ export default function ProfilePage() {
       try {
         const formData = new FormData();
         formData.append('file', file);
-        const res = (await apiClient.post('/user/avatar', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        })) as unknown as { avatarUrl?: string };
+        const res = (await apiClient.post('/user/avatar', formData)) as unknown as { avatarUrl?: string };
         const avatarUrl = res.avatarUrl;
         if (avatarUrl) {
           updateUser({ avatarUrl });
         }
       } catch {
-        // ignore
+        toast.error('头像上传失败');
       } finally {
         setUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
@@ -65,7 +64,7 @@ export default function ProfilePage() {
       updateUser({ bio: bioValue });
       setEditingBio(false);
     } catch {
-      // ignore
+      toast.error('保存简介失败');
     } finally {
       setSaving(false);
     }

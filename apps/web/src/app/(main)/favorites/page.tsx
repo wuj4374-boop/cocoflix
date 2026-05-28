@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { useFavorites } from '@/hooks/useApi';
 import { useAuthStore } from '@/stores/authStore';
@@ -25,7 +26,7 @@ export default function FavoritesPage() {
         await apiClient.delete(`/favorites/${mediaId}`);
         await mutate();
       } catch {
-        // ignore
+        toast.error('取消收藏失败');
       } finally {
         setRemovingId(null);
       }

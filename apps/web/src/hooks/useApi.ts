@@ -2,6 +2,7 @@
 
 import useSWR, { SWRConfiguration } from 'swr';
 import { apiClient } from '@/lib/api/client';
+import { useAuthStore } from '@/stores/authStore';
 
 // 通用 fetcher（apiClient 拦截器已解包 data）
 const fetcher = async <T>(url: string): Promise<T> => {
@@ -93,6 +94,7 @@ export function useSearch(query: string | null) {
 
 // 收藏列表 hook
 export function useFavorites() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useApi<
     Array<{
       id: string;
@@ -104,11 +106,12 @@ export function useFavorites() {
         rating?: number;
       };
     }>
-  >('/favorites');
+  >(isAuthenticated ? '/favorites' : null);
 }
 
 // 观看历史 hook
 export function useHistory() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   return useApi<
     Array<{
       id: string;
@@ -123,7 +126,7 @@ export function useHistory() {
         posterUrl?: string;
       };
     }>
-  >('/progress');
+  >(isAuthenticated ? '/progress' : null);
 }
 
 // 联想搜索 hook

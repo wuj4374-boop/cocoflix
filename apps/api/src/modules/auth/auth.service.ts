@@ -71,12 +71,13 @@ export class AuthService {
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // 创建用户
+    // 创建用户（第一个注册的用户为管理员）
+    const userCount = await this.userRepository.count();
     const user = this.userRepository.create({
       username,
       passwordHash,
       email,
-      role: UserRole.ADMIN, // 第一个用户为管理员
+      role: userCount === 0 ? UserRole.ADMIN : UserRole.USER,
     });
 
     const savedUser = await this.userRepository.save(user);
