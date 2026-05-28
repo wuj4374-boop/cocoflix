@@ -1,14 +1,15 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { Play, Info } from 'lucide-react';
+import { Play, Info, Search } from 'lucide-react';
 
 import { cn } from '@/lib/utils/cn';
 import { useMouseParallax } from '@/hooks/useMouseParallax';
 import { GlowButton, Badge, StarRating } from '@/components/ui';
-import { heroCrossfade } from '@/lib/animations';
+import { useTrending } from '@/hooks/useApi';
 
 interface HeroItem {
   id: string;
@@ -25,18 +26,18 @@ interface HeroProps {
   items?: HeroItem[];
 }
 
-const defaultItems: HeroItem[] = [
+const fallbackItems: HeroItem[] = [
   {
-    id: '1',
+    id: 'fallback-1',
     title: 'CocoFlix 私人影院',
-    overview: '支持 4K/HDR/HEVC 高画质播放，打造属于你的私人流媒体影院。沉浸式体验，电影级画质。',
+    overview: '支持 4K/HDR/HEVC 高画质播放，打造属于你的私人流媒体影院。搜索你想看的影片，即刻开始观影。',
     backdropUrl: '',
     rating: 9.0,
     year: 2024,
     genres: ['4K', 'HDR', '流媒体'],
   },
   {
-    id: '2',
+    id: 'fallback-2',
     title: '极致观影体验',
     overview: '自适应码率切换，智能字幕匹配，多设备同步进度。让每一次观影都成为享受。',
     backdropUrl: '',
@@ -45,13 +46,13 @@ const defaultItems: HeroItem[] = [
     genres: ['高清', '智能', '多端'],
   },
   {
-    id: '3',
-    title: '私人片库管理',
-    overview: '自动刮削元数据，智能分类归档，打造专属的影视资料馆。',
+    id: 'fallback-3',
+    title: '海量资源聚合',
+    overview: '聚合多个资源站，自动匹配最佳画质，一站搜索，全网资源尽在掌握。',
     backdropUrl: '',
     rating: 8.5,
     year: 2024,
-    genres: ['管理', '元数据', '归档'],
+    genres: ['聚合', '搜索', '全网'],
   },
 ];
 
@@ -69,12 +70,30 @@ const heroCrossfadeVariants = {
   },
 };
 
-export function Hero({ items = defaultItems }: HeroProps) {
+export function Hero({ items: propItems }: HeroProps) {
+  const router = useRouter();
+  const { data: trendingData } = useTrending();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const parallax = useMouseParallax({ intensity: 25 });
+
+  // Use prop items, or trending data mapped to HeroItem, or fallback
+  const items: HeroItem[] = propItems ?? (trendingData && trendingData.length > 0
+    ? trendingData.slice(0, 5).map((t) => ({
+        id: t.id,
+        title: t.title,
+        overview: t.overview ?? '',
+        backdropUrl: t.backdropUrl ?? '',
+        posterUrl: t.posterUrl,
+        rating: t.rating ?? 0,
+        year: t.year ?? new Date().getFullYear(),
+        genres: [],
+      }))
+    : fallbackItems);
+
   const currentItem = items[currentIndex] ?? items[0];
+  const isRealMedia = currentItem && !currentItem.id.startsWith('fallback-');
 
   const goTo = useCallback(
     (index: number) => {
@@ -181,21 +200,35 @@ export function Hero({ items = defaultItems }: HeroProps) {
 
               {/* CTA buttons */}
               <div className="flex items-center gap-4">
-                <GlowButton
-                  variant="primary"
-                  size="lg"
-                  icon={<Play size={20} fill="currentColor" />}
-                  href="/watch"
-                >
-                  立即播放
-                </GlowButton>
-                <GlowButton
-                  variant="secondary"
-                  size="lg"
-                  icon={<Info size={20} />}
-                >
-                  详情
-                </GlowButton>
+                {isRealMedia ? (
+                  <>
+                    <GlowButton
+                      variant="primary"
+                      size="lg"
+                      icon={<Play size={20} fill="currentColor" />}
+                      href={`/detail/${currentItem.id}`}
+                    >
+                      立即播放
+                    </GlowButton>
+                    <GlowButton
+                      variant="secondary"
+                      size="lg"
+                      icon={<Info size={20} />}
+                      href={`/detail/${currentItem.id}`}
+                    >
+                      详情
+                    </GlowButton>
+                  </>
+                ) : (
+                  <GlowButton
+                    variant="primary"
+                    size="lg"
+                    icon={<Search size={20} />}
+                    onClick={() => router.push('/search')}
+                  >
+                    搜索影片
+                  </GlowButton>
+                )}
               </div>
             </motion.div>
           </AnimatePresence>

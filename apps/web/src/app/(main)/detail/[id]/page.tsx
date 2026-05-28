@@ -318,7 +318,7 @@ export default function DetailPage({ params }: DetailPageProps) {
 
         {/* Similar media */}
         <motion.div variants={fadeInUp}>
-          <MediaRow title="相似推荐" endpoint={`/media/${id}/similar`} />
+          <MediaRow title="相似推荐" endpoint={`/search/similar/${id}`} />
         </motion.div>
       </motion.div>
     </div>

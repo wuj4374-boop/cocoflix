@@ -170,6 +170,16 @@ export async function createApp() {
         seedLogger.warn('数据库显式保存失败: ' + e, 'Bootstrap');
       }
 
+      // 重新加载资源站到内存（SourceManager 在 app.init 时已加载过，但那时数据库为空）
+      try {
+        const { SourceManager } = await import('./modules/source/services/source-manager.service');
+        const sourceManager = app.get(SourceManager);
+        await sourceManager.loadSourcesFromDb();
+        seedLogger.log('资源站已重新加载到内存', 'Bootstrap');
+      } catch (e) {
+        seedLogger.warn('重新加载资源站失败: ' + e, 'Bootstrap');
+      }
+
       seedLogger.log('自动初始化完成！', 'Bootstrap');
     }
   } catch (seedError) {

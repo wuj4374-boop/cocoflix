@@ -42,7 +42,7 @@ export default function SourceWatchPage({ params }: SourceWatchPageProps) {
   const aggregatedResult = useMemo(() => {
     if (typeof window === 'undefined') return null;
     try {
-      const cached = sessionStorage.getItem(`source-result-${id}`);
+      const cached = sessionStorage.getItem(`source-${id}`);
       return cached ? (JSON.parse(cached) as AggregatedResult) : null;
     } catch { return null; }
   }, [id]);
@@ -66,6 +66,20 @@ export default function SourceWatchPage({ params }: SourceWatchPageProps) {
     ? sortByQuality(currentSourceEpisode.sources)
     : sortedSources;
   const currentSource = currentEpisodeSources[currentSourceIdx] ?? currentEpisodeSources[0];
+
+  const handleNextEpisode = useCallback(() => {
+    if (currentSourceEpisodeIdx < sourceEpisodes.length - 1) {
+      const next = sourceEpisodes[currentSourceEpisodeIdx + 1];
+      if (next) setCurrentEpisodeNum(next.episodeNumber);
+    }
+  }, [currentSourceEpisodeIdx, sourceEpisodes]);
+
+  const handlePrevEpisode = useCallback(() => {
+    if (currentSourceEpisodeIdx > 0) {
+      const prev = sourceEpisodes[currentSourceEpisodeIdx - 1];
+      if (prev) setCurrentEpisodeNum(prev.episodeNumber);
+    }
+  }, [currentSourceEpisodeIdx, sourceEpisodes]);
 
   // 构建播放器配置
   const playerConfig = useMemo<PlayerConfig | null>(() => {
@@ -103,21 +117,7 @@ export default function SourceWatchPage({ params }: SourceWatchPageProps) {
       onNextEpisode: handleNextEpisode,
       onPrevEpisode: handlePrevEpisode,
     };
-  }, [aggregatedResult, id, isSeries, currentSourceEpisode, currentSourceEpisodeIdx, currentEpisodeSources, sortedSources, currentSource, currentEpisodeNum, sourceEpisodes.length]);
-
-  const handleNextEpisode = useCallback(() => {
-    if (currentSourceEpisodeIdx < sourceEpisodes.length - 1) {
-      const next = sourceEpisodes[currentSourceEpisodeIdx + 1];
-      if (next) setCurrentEpisodeNum(next.episodeNumber);
-    }
-  }, [currentSourceEpisodeIdx, sourceEpisodes]);
-
-  const handlePrevEpisode = useCallback(() => {
-    if (currentSourceEpisodeIdx > 0) {
-      const prev = sourceEpisodes[currentSourceEpisodeIdx - 1];
-      if (prev) setCurrentEpisodeNum(prev.episodeNumber);
-    }
-  }, [currentSourceEpisodeIdx, sourceEpisodes]);
+  }, [aggregatedResult, id, isSeries, currentSourceEpisode, currentSourceEpisodeIdx, currentEpisodeSources, sortedSources, currentSource, currentEpisodeNum, sourceEpisodes.length, handleNextEpisode, handlePrevEpisode]);
 
   const handleSwitchSource = useCallback((idx: number) => {
     setCurrentSourceIdx(idx);

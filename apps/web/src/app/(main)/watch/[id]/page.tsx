@@ -1,6 +1,6 @@
 'use client';
 
-import { use, useCallback, useMemo, useState, useEffect } from 'react';
+import { Suspense, use, useCallback, useMemo, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ChevronDown, ChevronUp, Clock, Star, Calendar, Monitor, Wifi, Shuffle, Heart } from 'lucide-react';
@@ -36,7 +36,7 @@ function sortByQuality<T extends { quality: { resolution: string } }>(items: T[]
   );
 }
 
-export default function WatchPage({ params }: WatchPageProps) {
+function WatchPageInner({ params }: WatchPageProps) {
   const { id } = use(params);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -135,6 +135,34 @@ export default function WatchPage({ params }: WatchPageProps) {
     : sortedSources;
   const currentEpisodeSource = currentEpisodeSources[currentSourceIdx] ?? currentEpisodeSources[0];
 
+  const handleNextEpisode = useCallback(() => {
+    if (isSourceSeries) {
+      if (currentSourceEpisodeIdx < sourceEpisodes.length - 1) {
+        const next = sourceEpisodes[currentSourceEpisodeIdx + 1];
+        if (next) setCurrentEpisodeNum(next.episodeNumber);
+      }
+    } else {
+      if (currentDbEpisodeIdx < dbEpisodes.length - 1) {
+        const next = dbEpisodes[currentDbEpisodeIdx + 1];
+        if (next) setCurrentEpisodeId(next.id);
+      }
+    }
+  }, [isSourceSeries, currentSourceEpisodeIdx, sourceEpisodes, currentDbEpisodeIdx, dbEpisodes]);
+
+  const handlePrevEpisode = useCallback(() => {
+    if (isSourceSeries) {
+      if (currentSourceEpisodeIdx > 0) {
+        const prev = sourceEpisodes[currentSourceEpisodeIdx - 1];
+        if (prev) setCurrentEpisodeNum(prev.episodeNumber);
+      }
+    } else {
+      if (currentDbEpisodeIdx > 0) {
+        const prev = dbEpisodes[currentDbEpisodeIdx - 1];
+        if (prev) setCurrentEpisodeId(prev.id);
+      }
+    }
+  }, [isSourceSeries, currentSourceEpisodeIdx, sourceEpisodes, currentDbEpisodeIdx, dbEpisodes]);
+
   // 构建播放器配置
   const playerConfig = useMemo<PlayerConfig | null>(() => {
     if (!media) return null;
@@ -204,35 +232,7 @@ export default function WatchPage({ params }: WatchPageProps) {
       onNextEpisode: handleNextEpisode,
       onPrevEpisode: handlePrevEpisode,
     };
-  }, [media, id, useSourceMode, isSourceSeries, currentEpisodeSources, sortedSources, currentSourceEpisode, currentSourceEpisodeIdx, currentDbEpisode, currentDbEpisodeIdx, currentEpisodeId, currentEpisodeNum, dbEpisodes, sourceEpisodes.length]);
-
-  const handleNextEpisode = useCallback(() => {
-    if (isSourceSeries) {
-      if (currentSourceEpisodeIdx < sourceEpisodes.length - 1) {
-        const next = sourceEpisodes[currentSourceEpisodeIdx + 1];
-        if (next) setCurrentEpisodeNum(next.episodeNumber);
-      }
-    } else {
-      if (currentDbEpisodeIdx < dbEpisodes.length - 1) {
-        const next = dbEpisodes[currentDbEpisodeIdx + 1];
-        if (next) setCurrentEpisodeId(next.id);
-      }
-    }
-  }, [isSourceSeries, currentSourceEpisodeIdx, sourceEpisodes, currentDbEpisodeIdx, dbEpisodes]);
-
-  const handlePrevEpisode = useCallback(() => {
-    if (isSourceSeries) {
-      if (currentSourceEpisodeIdx > 0) {
-        const prev = sourceEpisodes[currentSourceEpisodeIdx - 1];
-        if (prev) setCurrentEpisodeNum(prev.episodeNumber);
-      }
-    } else {
-      if (currentDbEpisodeIdx > 0) {
-        const prev = dbEpisodes[currentDbEpisodeIdx - 1];
-        if (prev) setCurrentEpisodeId(prev.id);
-      }
-    }
-  }, [isSourceSeries, currentSourceEpisodeIdx, sourceEpisodes, currentDbEpisodeIdx, dbEpisodes]);
+  }, [media, id, useSourceMode, isSourceSeries, currentEpisodeSources, sortedSources, currentSourceEpisode, currentSourceEpisodeIdx, currentDbEpisode, currentDbEpisodeIdx, currentEpisodeId, currentEpisodeNum, dbEpisodes, sourceEpisodes.length, handleNextEpisode, handlePrevEpisode]);
 
   // 默认选中第一集
   useEffect(() => {
@@ -626,5 +626,17 @@ export default function WatchPage({ params }: WatchPageProps) {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function WatchPage({ params }: WatchPageProps) {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    }>
+      <WatchPageInner params={params} />
+    </Suspense>
   );
 }

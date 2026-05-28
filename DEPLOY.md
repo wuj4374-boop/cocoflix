@@ -74,9 +74,10 @@ https://cocoflix-api-xxx.onrender.com
 
 | Name | Value |
 |------|-------|
-| `NEXT_PUBLIC_API_URL` | `https://cocoflix-api-xxx.onrender.com/api/v1` |
+| `NEXT_PUBLIC_API_URL` | `https://cocoflix-api-xxx.onrender.com` |
 
 > 把 `cocoflix-api-xxx.onrender.com` 替换为你在 Render 拿到的实际域名。
+> **注意**：不要在 URL 末尾加 `/api/v1`，只需填后端的基础域名。
 
 5. 点击 **Save**
 6. 进入 **Deployments**，点击最新部署右边的 **...** → **Redeploy**

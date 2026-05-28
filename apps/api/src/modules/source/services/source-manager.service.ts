@@ -50,7 +50,7 @@ export class SourceManager implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private async loadSourcesFromDb(): Promise<void> {
+  async loadSourcesFromDb(): Promise<void> {
     try {
       const dbSources = await this.sourceRepository.find({ where: { enabled: true } });
       for (const dbSource of dbSources) {
@@ -235,18 +235,20 @@ export class SourceManager implements OnModuleInit, OnModuleDestroy {
     };
   }
 
-  enableSource(id: string): void {
+  async enableSource(id: string): Promise<void> {
     const source = this.sources.get(id);
     if (source) {
       source.config.enabled = true;
       this.circuitBreaker.reset(id);
+      await this.sourceRepository.update(id, { enabled: true });
     }
   }
 
-  disableSource(id: string): void {
+  async disableSource(id: string): Promise<void> {
     const source = this.sources.get(id);
     if (source) {
       source.config.enabled = false;
+      await this.sourceRepository.update(id, { enabled: false });
     }
   }
 

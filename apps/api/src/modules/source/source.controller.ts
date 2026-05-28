@@ -210,29 +210,17 @@ export class SourceController {
   @Post('sources/:sourceId/enable')
   @ApiOperation({ summary: '启用资源源' })
   @ApiResponse({ status: 200, description: '启用成功' })
-  enableSource(@Param('sourceId') sourceId: string): { success: boolean } {
-    this.sourceManager.enableSource(sourceId);
+  async enableSource(@Param('sourceId') sourceId: string): Promise<{ success: boolean }> {
+    await this.sourceManager.enableSource(sourceId);
     return { success: true };
   }
 
   @Post('sources/:sourceId/disable')
   @ApiOperation({ summary: '禁用资源源' })
   @ApiResponse({ status: 200, description: '禁用成功' })
-  disableSource(@Param('sourceId') sourceId: string): { success: boolean } {
-    this.sourceManager.disableSource(sourceId);
+  async disableSource(@Param('sourceId') sourceId: string): Promise<{ success: boolean }> {
+    await this.sourceManager.disableSource(sourceId);
     return { success: true };
-  }
-
-  @Get('sources/:sourceId/health')
-  @ApiOperation({ summary: '检查单个源健康状态' })
-  @ApiResponse({ status: 200, description: '检查成功' })
-  async checkSourceHealth(@Param('sourceId') sourceId: string) {
-    try {
-      const health = await this.sourceManager.checkHealth(sourceId);
-      return { sourceId, health };
-    } catch {
-      throw new HttpException(`Source not found: ${sourceId}`, HttpStatus.NOT_FOUND);
-    }
   }
 
   @Get('sources/health/all')
@@ -245,6 +233,18 @@ export class SourceController {
       result[id] = health;
     }
     return result;
+  }
+
+  @Get('sources/:sourceId/health')
+  @ApiOperation({ summary: '检查单个源健康状态' })
+  @ApiResponse({ status: 200, description: '检查成功' })
+  async checkSourceHealth(@Param('sourceId') sourceId: string) {
+    try {
+      const health = await this.sourceManager.checkHealth(sourceId);
+      return { sourceId, health };
+    } catch {
+      throw new HttpException(`Source not found: ${sourceId}`, HttpStatus.NOT_FOUND);
+    }
   }
 
   // ==================== Circuit Breaker ====================
